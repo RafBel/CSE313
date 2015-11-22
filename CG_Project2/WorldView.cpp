@@ -41,7 +41,7 @@ void CWorldView::projection()
 	glFrustum(-1, 1, -1, 1, 1, 40);
 } 
 
-void CWorldView::draw()  
+void CWorldView::draw(bool shadowFlag)  
 {
 
 	float lt_posit[4] = {-20.0f, -20.0f, 30.0f, 1.0f};
@@ -57,7 +57,7 @@ void CWorldView::draw()
 	glPushMatrix();
 	pScene->setLightPosition(lt_posit);
 	pScene->sceneTransformation();
-	pScene->draw();
+	pScene->draw(shadowFlag);
 	glPopMatrix();
 	
 }

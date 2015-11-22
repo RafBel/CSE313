@@ -7,6 +7,9 @@
 #include "stdafx.h"
 #include "Vector3d.h"
 
+//These values are much greater than possible, so they guarantee it will work
+
+
 class CBug : public CCritter
 {
 public:

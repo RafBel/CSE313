@@ -13,6 +13,9 @@ char rotateAxis ='z'; // initial setting to rotate around z axis
 double dt = 1.0/30.0;  // in seconds, that is, 30 frames per second, so call display() once every 1/30 seconds
 double clockSpeed =1.0;  // initialize clock speed; larger value leads to faster animation.
 
+//Decides if shadows are on/off
+bool shadowFlag = true; //shadows are on
+
 //<<<<<<<<<<<<<<<<<<<<<<<<<<<<< display for world view >>>>>>>>>>>>>>>>>>>>>>
 void display(void)
 {
@@ -20,7 +23,7 @@ void display(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	wv.projection();  
-	wv.draw();
+	wv.draw(shadowFlag);
  
 	glFlush();
 	glutSwapBuffers(); // swap buffers for smooth animation
@@ -71,6 +74,11 @@ void myKeys(unsigned char key, int x, int y)
 		case 'l':  // slower animation
 			clockSpeed -=0.1;
 			printf("slower animation\n");
+			break;
+
+		case 's': //turns shadows on/off
+			shadowFlag = !shadowFlag;
+			printf("Shadow mode toggle activated\n");
 			break;
 		default: break;
 	}

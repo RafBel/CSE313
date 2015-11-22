@@ -27,19 +27,29 @@ CCritter::~CCritter()
 // this function assumes acc has already been computed
 void CCritter::integrate(double dt){
 
-	// ... add in code here	
-	// update velocity
-	// update position 
-	// add to total distance traveled
+	// update velocity:
+	Vector3d accDT = acc;
+	accDT.scale(dt);
 
+	vel.set(accDT.x + vel.x, accDT.y + vel.y, accDT.z + vel.z);
+
+	// update position:
+	Vector3d velDT = vel;
+	velDT.scale(dt);
+
+	Point3d lastPosition = pos;
+	pos.set(pos.x + velDT.x, pos.y + velDT.y, pos.z + velDT.z);
+
+	// add to total distance traveled
+	dist += pos.distance(lastPosition);
 }
 
 // add in viscous drag (assume mass of 1): a+=-k*v (k>0)
 void CCritter::accelDrag(double k){
 	
-	
-	// ... add in code here
 	// update acceleration due to viscous drag
+	acc.set(acc.x - k*vel.x, acc.y - k*vel.y, acc.z - k*vel.z);
+
 
 }
 
@@ -55,7 +65,19 @@ void CCritter::accelDrag(double k){
 void CCritter::accelAttract(Point3d p, double k, double exp){
 
 
-	// ... add in code here
+	//Calculating dist:
+	double dist = pos.distance(p);
+
+	//Calculating direction:
+	Vector3d direction = Vector3d(pos.x - p.x, pos.y - p.y, pos.z - p.z);
+	direction.normalize();
+
+	//Calculating attraction:
+	Vector3d attraction = direction;
+	attraction.scale(k*pow(dist,exp));
+
+	//New acceleration is:
+	acc.set(acc.x + attraction.x, acc.y + attraction.y, acc.z + attraction.z);
 
 
 }
@@ -71,10 +93,10 @@ void CCritter::accelWander(double k, double t, double often){
 
 		// generate new goal point near middle, not too close to current bug position
 		do{
-			pWander.x = (rgen.randu()-0.5)*10.0;
-			pWander.y = (rgen.randu()-0.5)*10.0;
+			pWander.x = (rgen.randu()-0.5)*14.0;
+			pWander.y = (rgen.randu()-0.5)*14.0;
 			pWander.z = 0;
-		}while (pWander.distance(getLocation()) < 4.0);
+		}while (pWander.distance(getLocation()) < 6.0);
 	}
 	accelAttract(pWander, k, 0.8);
 }

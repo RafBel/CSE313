@@ -87,7 +87,7 @@ public:
 	void build();   // build the scene (create critters, trees, obstacles, etc. in the scene)
 	void process(double elapsed);   // update the scene (animate) after "elapsed" seconds
 
-	void draw();
+	void draw(bool);
 
 
 

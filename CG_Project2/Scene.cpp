@@ -75,9 +75,12 @@ void CScene::build()
 	Point3d loc = freeSpotUniform(1.0f, 1.5f);
 	pMainBug = new CBug(1.0f, loc.x, loc.y, (rgen.randg())*0.1f, (rgen.randg())*0.1f);
 
-
-	// ... add in code here
 	// create follower critters
+	for (int index = 0; index < numCritters; index++)
+	{
+		Point3d loc = freeSpotUniform(1.0f, 1.5f);
+		pCritters[index] = new CBug(0.6f, loc.x, loc.y, (rgen.randg())*0.1f, (rgen.randg())*0.1f);
+	}
 	
 	
 	// reset clock
@@ -118,12 +121,16 @@ bool CScene::isFreeSpot(Point3d p, float minDist)
 			return false;
 	}
 	
-	
-
-	// ... add in code here
 	// take into account follower critters when determining a free spot.
 	// check follower critters
-	
+
+	for (int index = 0; index < numCritters; index++)
+	{
+		if (pCritters[index] != NULL) {
+			if (p.distance( (pCritters[index])->getLocation() ) < minDist) 
+				return false;
+		}
+	}
 
 
 	return true;
@@ -141,7 +148,7 @@ void CScene::sceneTransformation()
 
 
 
-void CScene::draw()
+void CScene::draw(bool shadowFlag)
 {
 
 	int i;
@@ -165,6 +172,8 @@ void CScene::draw()
 	// ... add in code here
 	// draw follower bugs
 	
+	for (int index = 0; index < numCritters ; index++)
+		pCritters[index]->draw(true,color);
 
 	// enable clipping plane before drawing obstacles
 	glClipPlane(GL_CLIP_PLANE0, ground);
@@ -175,12 +184,28 @@ void CScene::draw()
 		pObstacles[i]->draw(true);
 	}
 
-	
-
-	// ... add in code here
 	// to draw shadow for obstacles, bugs and other scene elements
 	// shadowProject() computes the projection matrix and is already provided.
+	if (shadowFlag)
+	{
+		shadowProject();
+		glDisable(GL_LIGHT0);
+		glPushMatrix();
+			//Main bug shadow:
+			pMainBug->draw(true, color);
 
+			//Shadows for other bugs: 
+			for (int index = 0; index < numCritters; index++)
+				pCritters[index]->draw(true,color);
+
+			//Obstracles' shadows:
+			for (i=0; i<numObstacles; i++)
+			{
+				pObstacles[i]->draw(true);
+			}
+		glPopMatrix();
+		glEnable(GL_LIGHT0);
+	}
 	
 }
 
@@ -193,7 +218,16 @@ void CScene::process(double elapsed)
 	frameNumber++;
 
 	double dtMax = 1.0/50.0f;  // maximum time needed to make one step forward
+
+	//Values:
+	double kRepulsion = 4;
+	double kAttraction = -2;
+
+	double expAttraction = 2;
+	double expRepulsion = -0.8;
 	
+	double objectRepulsion = -0.5;
+
 	// number of integration steps
 	int steps = (int) (elapsed/dtMax);
 
@@ -208,33 +242,81 @@ void CScene::process(double elapsed)
 
 
 		// ... add in code here to reset all follower critters' acceleration
-
+		for (int index = 0; index < numCritters; index++)
+			pCritters[index]->accelReset();
 		
  		// take into account all sorts of forces to update acceleration
 
 
 		// ... All critters do not hit obstacles, if any
+		for (int index = 0; index < numObstacles; ++index)
+		{
+			//Main bug tries not to hit obstacles:
+			pMainBug->accelAttract(pObstacles[index]->getLocation(),kRepulsion, objectRepulsion);
+
+			//Follower bugs try not to hit obstacles:
+			for (int critterIndex = 0; critterIndex < numCritters; ++critterIndex)
+				pCritters[critterIndex]->accelAttract(pObstacles[index]->getLocation(), kRepulsion , objectRepulsion);
+		}
 		
 		// ... follower critters follow the main bug
+		for (int index = 0; index < numCritters; ++ index)
+			pCritters[index]->accelAttract(pMainBug->getLocation(), kAttraction, expAttraction);
 		
 
 		// ... follower critters try not to hit each other
+		for (int index1 = 0; index1 < numCritters; ++ index1)
+			for (int index2 = 0; index2 < numCritters; ++ index2)
+				if (index1 != index2) //if not same bug
+				{
+					pCritters[index1]->accelAttract(pCritters[index2]->getLocation(), kRepulsion, expRepulsion);
+				}
 		
 		// ... follower critters try not to hit the main bug
+		for (int index1 = 0; index1 < numCritters; ++ index1)
+			pCritters[index1]->accelAttract(pMainBug->getLocation(), kRepulsion , expRepulsion);
 		
 		// apply other accelerations
 		// main bug wanders every once in a while, but stays near the middle
-		pMainBug->accelWander(0.8, clock, ((rgen.randg()+0.5)*3.0+4.0));
+		pMainBug->accelWander(-1.2, clock, ((rgen.randg()+0.5)*3.0+4.0));
 
 		// .... viscous drag for main bug and follower critters
+
+		//Main bug:
+		pMainBug->accelDrag(2);
+
+		//Follower bugs:
+		for (int index = 0; index < numCritters; ++index)
+			pCritters[index]->accelDrag(2);
 		
 		// ...  cap on main bug and follower critter accelerations; accelCap() function is given in CCritter.h
-	
+		
+		//Main bug:
+		pMainBug->accelCap(4);
+
+		//Other bugs:
+		for (int index = 0; index < numCritters; ++index)
+			pCritters[index]->accelCap(5);
 
 		// ... integrate to update velocity and position for main bug and all follower critters
+
+		//Main Bug:
+		pMainBug->integrate(dt);
+
+		//Followers:
+		for (int index = 0; index < numCritters; ++index)
+			pCritters[index]->integrate(dt);
+
 	}
 
 	// ... key frame motion to update keyframe parameters for main bug and followers; call keyframe() in CBug class
+
+	//Main Bug:
+	pMainBug->keyframe(pMainBug->distTraveled());
+
+	//Followers:
+	for (int index = 0; index < numCritters; ++index)
+			pCritters[index]->keyframe(pCritters[index]->distTraveled());
 	
 }
 

@@ -26,7 +26,7 @@ public:
 	CScene & getScene()  {return (*pScene);}
 
 	void projection();
-	void draw();  
+	void draw(bool);  
 
 	void worldCameraTransformation();  // apply world camera transformation
 

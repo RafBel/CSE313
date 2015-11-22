@@ -123,12 +123,35 @@ void CBug::keyframe(double distanceTraveled)
 	T -= (int) T;
 
 	// the following two line are place holder for the initial main bug
-	for (int i=0; i<numParams; i++)
-		param[i] = keyFrames[0][i];
+	/*for (int i=0; i<numParams; i++)
+		param[i] = keyFrames[0][i];*/
 
-	// ... add in code here
 	// find two nearest keyframes
+
+	int smallerKeyframe, greaterKeyframe;
+	smallerKeyframe = 0; greaterKeyframe = 4;
+
+	for (int index = 1; index < 4 ; ++index)
+	{
+		double currentDifference = T - keyT[index];
+		double smallerDifference = T - keyT[smallerKeyframe];
+		double greaterDifference = T - keyT[greaterKeyframe];
+
+		//finds closest smallest keyframe
+		if (currentDifference >= 0 && currentDifference <= smallerDifference)
+			smallerKeyframe = index;
+		
+		//finds closest greater keyframe
+		else if (currentDifference < 0 && currentDifference > greaterDifference)
+			greaterKeyframe = index;
+	}
 	// interpolate keyframes (linearly) to compute current keyframe parameters and save in "param"
+	//P = Po + (t - to) (P1 - P0)/(t1- to)
+	for (int index = 0; index < numParams; index++)
+	{
+		param[index] = keyFrames[smallerKeyframe][index] + (T - keyT[smallerKeyframe] ) * ( ( keyFrames[greaterKeyframe][index] -
+					   keyFrames[smallerKeyframe][index]) / (keyT[greaterKeyframe] - keyT[smallerKeyframe]) );
+	}
 
 }
 
@@ -234,12 +257,27 @@ double CBug::bugHeading()
 {
 	double theta;
 
+	double X, Y;
+
 	// the following line is place holder 
-	theta =-90; 
+	//theta =-90; 
 
 	// ... add in code here to compute bug heading based on velocity
 	// Hint: you may need to use the atan2() function
 	// if velocity is zero, use acceleration direction to compute heading
+
+	if (vel.magnitude() == 0) //check to se if this is right
+	{
+		X = acc.x;
+		Y = acc.y;
+	}
+	else
+	{
+		X = vel.x;
+		Y = vel.y;
+	}
+	
+	theta = atan2(Y,X);
 
 	return theta;
 }

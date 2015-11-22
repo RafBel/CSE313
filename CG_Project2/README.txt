@@ -14,6 +14,10 @@ The skeleton code was used for this project.
 For phase 01, the missing code for CTreePart::CTreePart() has been completed with the code for procedural tree generation, and the depth level for the tree has been properly updated in CScene::build().
 This program is able to create random generated trees. In other words, the program will create different trees every time it is run.
 
+For phase 02, the missing code for the rest of the project has been filled in. Smaller bugs have been added and they follow around their "mother". All the forces have been calculated and 
+added, so the bugs won't hit each other or the tree. The main bug wanders around the scene and the other bugs follow her around.
+Shadows have also been added to the scene using shadowProject().
+
 
 Extra Credit:
 ===========================
@@ -32,6 +36,7 @@ y: rotate around the Y axis
 z: rotate around the Z axis
 +: increase size of object
 -: decrease size of object
+s: toggles shadows on/off (on program start, it is set to on)
 
 
 Note: All keys are case sensitive.
